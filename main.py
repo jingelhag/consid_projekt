@@ -1,4 +1,9 @@
 import window_manager as wm
+import databaseConnection
+databaseObject = databaseConnection.databaseConnection()
+databaseObject.removeDatabase()
+databaseObject.initialize()
+databaseObject.setupTables()
 
 root = wm.Tk()
 root.geometry("200x100")
