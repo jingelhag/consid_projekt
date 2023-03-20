@@ -262,7 +262,7 @@ def editItem(tree, attribute):
     answer = Entry(editCategoryWindow, width=10)
     answer.pack()
     dbObject = qs.dc.databaseConnection()
-    yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editCategory(dbObject, Id, attribute, answer.get()), close_window(editCategoryWindow))).pack()
+    yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editItem(dbObject, Id, attribute, answer.get()), close_window(editCategoryWindow))).pack()
 
 # delete functionality
 def deleteCategory(tree):
@@ -359,8 +359,8 @@ def viewCategories():
 def viewLibraryItems():
     viewLibraryItemsWindow = Toplevel()
     tree = ttk.Treeview(viewLibraryItemsWindow)
-    viewLibraryItemsWindow.geometry("400x400")
-    centerWindow(viewLibraryItemsWindow, 400, 400) 
+    viewLibraryItemsWindow.geometry("900x400")
+    centerWindow(viewLibraryItemsWindow, 900, 400) 
     # Set up the columns in the Treeview widget
     dbObject = qs.dc.databaseConnection()
     columns = qs.getColumns(dbObject, "LibraryItem")
@@ -391,11 +391,14 @@ def viewLibraryItems():
     # Create buttons
     editButton = Button(viewLibraryItemsWindow, text="Edit Item", command=lambda:selectItemAttribute(tree))
     deleteButton = Button(viewLibraryItemsWindow, text="Delete Item", command=lambda:deleteItem(tree))
-
+    checkInButton = Button(viewLibraryItemsWindow, text="Check In Item", command=lambda:checkIn(tree))
+    checkOutButton = Button(viewLibraryItemsWindow, text="Check Out Item", command=lambda:checkOut(tree))
+    
     # Place buttons in the grid
-    editButton.grid(row=1, column=0, padx=5, pady=5, sticky="w")
-    deleteButton.grid(row=1, column=1, padx=5, pady=5, sticky="e")
-
+    editButton.grid(row=1, column=1, padx=5, pady=5, sticky="e")
+    deleteButton.grid(row=1, column=2, padx=5, pady=5, sticky="e")
+    checkInButton.grid(row=1, column=3, padx=5, pady=5, sticky="e")
+    checkOutButton.grid(row=1, column=4, padx=5, pady=5, sticky="e")
     # Bind the TreeviewSelect event to the on_select function
     viewLibraryItemsWindow.grid_columnconfigure(0, weight=1)
     viewLibraryItemsWindow.grid_rowconfigure(0, weight=1)
@@ -403,22 +406,82 @@ def viewLibraryItems():
 def viewEmployees():
     print()
 
+# Check In & Check Out
+
+def checkIn(tree):
+    # tree.focus holds the highlighted id number[0]
+    selectedItem = tree.focus()
+    dbObject = qs.dc.databaseConnection()
+    if selectedItem:
+        Id = tree.item(selectedItem)["values"][0]
+        if not qs.isBorrowable(dbObject, Id) and not qs.isReferenceBook(dbObject, Id):
+            checkInWindow = Toplevel()
+            checkInWindow.geometry("250x100")
+            centerWindow(checkInWindow, 250, 100) 
+            question = Label(checkInWindow, text="Are you sure you wanna check in this item?")
+            question.grid(row=0, column=0)
+            yesButton = Button(checkInWindow, text="Yes", command=lambda: (qs.checkIn(dbObject, Id), close_window(checkInWindow)))
+            yesButton.grid(row=1, column=0)
+            noButton = Button(checkInWindow, text="No", command=lambda:close_window(checkInWindow))
+            noButton.grid(row=1, column=1)
+        else:
+            checkInWindow = Toplevel()
+            checkInWindow.geometry("300x50")
+            centerWindow(checkInWindow, 300, 50) 
+            question = Label(checkInWindow, text="Can't check in item since it's either a reference book or it is already check in!")
+            question.grid(row=0, column=0)
+    else:
+        editCategoryWindow = Toplevel()
+        editCategoryWindow.geometry("250x50")
+        centerWindow(editCategoryWindow, 250, 50) 
+        question = Label(editCategoryWindow, text="Select an item in the list you want to check in!")
+        question.grid(row=0, column=0)
+
+def checkOut(tree):
+    # tree.focus holds the highlighted id number[0]
+    selectedItem = tree.focus()
+    dbObject = qs.dc.databaseConnection()
+    if selectedItem:
+        Id = tree.item(selectedItem)["values"][0]
+        if qs.isBorrowable(dbObject, Id):
+            checkInWindow = Toplevel()
+            checkInWindow.geometry("250x100")
+            centerWindow(checkInWindow, 250, 100) 
+            question = Label(checkInWindow, text="Name of borrower:")
+            question.grid(row=0, column=0)
+            yesButton = Button(checkInWindow, text="Check out", command=lambda: (qs.checkOut(dbObject, Id, answer.get()), close_window(checkInWindow)))
+            yesButton.grid(row=1, column=0)
+            answer = Entry(checkInWindow, width=10)
+            answer.grid(row=0, column=1)
+        else:
+            checkInWindow = Toplevel()
+            checkInWindow.geometry("250x50")
+            centerWindow(checkInWindow, 250, 50) 
+            question = Label(checkInWindow, text="Can't check out item since it already is checked out!")
+            question.grid(row=0, column=0)
+    else:
+        editCategoryWindow = Toplevel()
+        editCategoryWindow.geometry("250x50")
+        centerWindow(editCategoryWindow, 250, 50) 
+        question = Label(editCategoryWindow, text="Select an item in the list you want to check out!")
+        question.grid(row=0, column=0)
+
 def selectItemAttribute(tree):
 
     selectedItem = tree.focus()
     if selectedItem:
         selectCategoryWindow = Toplevel()
-        selectCategoryWindow.geometry("220x200")
+        selectCategoryWindow.geometry("220x260")
 
-        centerWindow(selectCategoryWindow, 220, 170)
+        centerWindow(selectCategoryWindow, 220, 260)
 
         question = Label(selectCategoryWindow, text="Select the attribute you want to edit").pack()
 
-        title = Button(selectCategoryWindow, text="Title", command=lambda: editItem(tree, "title")).pack()
+        title = Button(selectCategoryWindow, text="Title", command=lambda: editItem(tree, "Title")).pack()
 
-        author = Button(selectCategoryWindow, text="Author", command=lambda: editItem(tree, "author")).pack()
+        author = Button(selectCategoryWindow, text="Author", command=lambda: editItem(tree, "Author")).pack()
 
-        pages = Button(selectCategoryWindow, text="Pages", command=lambda: editItem(tree, "pages")).pack()
+        pages = Button(selectCategoryWindow, text="Pages", command=lambda: editItem(tree, "Pages")).pack()
 
         runTimeMinutes = Button(selectCategoryWindow, text="Runtime in minutes", command=lambda: editItem(tree, "runTimeMinutes")).pack()
 
@@ -426,9 +489,7 @@ def selectItemAttribute(tree):
 
         borrowDate = Button(selectCategoryWindow, text="Borrow Date", command=lambda: editItem(tree, "borrowDate")).pack()
 
-        itemType = Button(selectCategoryWindow, text="Runtime in minutes", command=lambda: editItem(tree, "type")).pack()
-
-        placeWindowOnTop(selectCategoryWindow)
+        itemType = Button(selectCategoryWindow, text="Type of item", command=lambda: editItem(tree, "type")).pack()
     else:
         deleteCategoryWindow = Toplevel()
         deleteCategoryWindow.geometry("250x50")
