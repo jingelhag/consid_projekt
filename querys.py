@@ -1,5 +1,6 @@
 from datetime import date
 import databaseConnection as dc
+
 # General functions for quering the database
 def checkInDatabase(dbObject, tableName, listOfColumns, listOfValues):
     dbObject.startConnection()
@@ -159,3 +160,11 @@ def checkOut(dbObject, Id, borrower):
         dbObject.closeConnection()
     else:
         print("Cannot check in this item since it doesn't exists in database")
+
+def getDataFromTable(dbObject, table, orderBy):
+    dbObject.startConnection()
+    query = "SELECT * FROM {} ORDER BY {}".format(table, orderBy)
+    dbObject.cursor.execute(query)
+    newValues = dbObject.cursor.fetchall()
+    dbObject.closeConnection()
+    return newValues
