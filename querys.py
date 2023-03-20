@@ -1,6 +1,6 @@
 from datetime import date
 import databaseConnection as dc
-
+import extra_functions as ef
 # General functions for quering the database
 def checkInDatabase(dbObject, tableName, listOfColumns, listOfValues):
     dbObject.startConnection()
@@ -37,6 +37,45 @@ def getColumns(dbObject, table):
     column_names = [col[0] for col in dbObject.cursor.fetchall()]
     return column_names   
 
+def getManagerId(dbObject, Id):
+    dbObject.startConnection()
+    dbObject.cursor.execute("SELECT Id FROM Employees WHERE Id = %s AND isManager = 1", (Id,))
+    answer = dbObject.cursor.fetchone()
+    dbObject.closeConnection()
+    return 0 if answer is None else answer[0]
+
+# checks if there is an CEO already in the database
+def isCEO(dbObject, Id):
+    dbObject.startConnection()
+    dbObject.cursor.execute("SELECT * FROM Employees WHERE isCEO = 1 AND Id = %s", (Id, ))
+    answer = dbObject.cursor.fetchone()
+    dbObject.closeConnection()
+    return 0 if answer is None else 1
+
+def isManager(dbObject, Id):
+    dbObject.startConnection()
+    dbObject.cursor.execute("SELECT * FROM Employees WHERE isManager = 1 AND Id = %s", (Id, ))
+    answer = dbObject.cursor.fetchone()
+    dbObject.closeConnection()
+    return 0 if answer is None else 1
+
+def checkForCEO(dbObject):
+    dbObject.startConnection()
+    dbObject.cursor.execute("SELECT * FROM Employees WHERE isCEO = 1")
+    answer = dbObject.cursor.fetchone()
+    dbObject.closeConnection()
+    return 0 if answer is None else 1
+
+# checking if a manager is managing over someone
+
+def checkDeleteEmployee(dbObject, Id):
+    dbObject.startConnection()
+    dbObject.cursor.execute("SELECT * FROM Employees WHERE ManagerId = %s", (Id, ))
+    answer = dbObject.cursor.fetchone()
+    dbObject.closeConnection()
+    return 0 if answer is None else 1
+
+# Checks if one can borrow the item
 def isBorrowable(dbObject, Id):
     dbObject.startConnection()
     dbObject.cursor.execute("SELECT IsBorrowable FROM LibraryItem WHERE Id = %s", (Id,))
@@ -45,6 +84,18 @@ def isBorrowable(dbObject, Id):
     # assuming that this field is never "None" since I set its value everytime. Might wanna change this.
     print(answer[0]) 
     return int(answer[0])
+
+# 
+def checkConditionsForCeo(dbObject):
+    return not checkForCEO(dbObject)
+
+def checkConditionsForManager(dbObject, managerId):
+    if len(managerId) == 0:
+        return True
+    return isCEO(dbObject, managerId) or isManager(dbObject, managerId)
+
+def checkConditionsForEmployee(dbObject, managerId):
+    return not isCEO(dbObject, managerId) and isManager(dbObject, managerId)
 
 def isReferenceBook(dbObject, Id):
     if getCategoryName(dbObject, Id) == "Reference Book":
@@ -134,6 +185,42 @@ def deleteItem(dbObject, Id):
     else:
         print("Cannot delete item. It's not in the database.") 
 
+
+# Functions for employees
+def addEmployee(dbObject, values):
+    # No specification that employees must be uniqe, therefore no check in database
+    dbObject.startConnection()
+    query = "INSERT INTO Employees (FirstName, LastName, Salary, IsCEO, IsManager, \
+            ManagerID) VALUES ({})".format(", ".join(["%s"] * len(values)))
+    dbObject.cursor.execute(query, values)
+    dbObject.database.commit()
+    print("Employee was added to database!")
+    dbObject.closeConnection()
+
+def editEmployee(dbObject, Id, attribute, newValue):
+    canEdit = 1
+    if attribute == "isCEO":
+        canEdit = not checkForCEO(dbObject)
+    if checkInDatabase(dbObject, "Employees", ["Id"], [Id]) and canEdit:
+        dbObject.startConnection()
+        dbObject.cursor.execute("UPDATE Employees SET " + attribute + " = %s WHERE Id = %s", (newValue, Id))
+        if attribute == "isCEO" and canEdit:
+            dbObject.cursor.execute("UPDATE Employees SET ManagerId = %s WHERE Id = %s", (None, Id))
+        dbObject.database.commit()
+        dbObject.closeConnection()
+    else:
+        print("Cannot edit employee!")   
+
+def deleteEmployee(dbObject, Id):
+    if checkInDatabase(dbObject, "Employees", ["Id"], [Id]):
+            dbObject.startConnection()
+            dbObject.cursor.execute("DELETE FROM Employees WHERE Id = %s", (Id,))
+            dbObject.database.commit()
+            print("Category was deleted!")
+            dbObject.closeConnection()
+    else:
+        print("Cannot delete item. It's not in the database.") 
+    
 # Functions for check in & check out
 def checkIn(dbObject, Id):
     if checkInDatabase(dbObject, "LibraryItem", ["Id"], [Id]):

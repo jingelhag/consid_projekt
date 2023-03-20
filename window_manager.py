@@ -1,7 +1,8 @@
 from tkinter import *
 import querys as qs
 from tkinter import ttk
-import extra_functions as ef
+
+# to keep track on current sort option
 currentSort = "Title"
 
 def centerWindow(root, width, height):
@@ -18,11 +19,12 @@ def centerWindow(root, width, height):
 def placeWindowOnTop(window):
     window.attributes("-topmost", True)
 
+# Submit functionality
 def submitBook(selectCategoryWindow, submitBookWindow, title, author, pages):
 
-    if ef.checkInputBookOrReferenceBook(title, author, pages):
+    if qs.ef.checkInputBookOrReferenceBook(title, author, pages):
         dbObject = qs.dc.databaseConnection()
-        titleWithAcronym = title + ef.getAcronym(title)
+        titleWithAcronym = title + qs.ef.getAcronym(title)
         if qs.checkInDatabase(dbObject, "Category", ["CategoryName"], ["Book"]):
             values = (qs.getCategoryId(dbObject, "Book"), titleWithAcronym, author, pages, None, 1, None, None, "Book")
             qs.addLibraryItem(dbObject, values)
@@ -41,9 +43,9 @@ def submitBook(selectCategoryWindow, submitBookWindow, title, author, pages):
         placeWindowOnTop(wrongInputWindow)
 
 def submitDvd(selectCategoryWindow, submitBookWindow, title, runTimeInMinutes):
-    if ef.checkInputAudioBookorDvd(title, runTimeInMinutes):
+    if qs.ef.checkInputAudioBookorDvd(title, runTimeInMinutes):
         dbObject = qs.dc.databaseConnection()
-        titleWithAcronym = title + ef.getAcronym(title)
+        titleWithAcronym = title + qs.ef.getAcronym(title)
         if qs.checkInDatabase(dbObject, "Category", ["CategoryName"], ["Dvd"]):
             values = (qs.getCategoryId(dbObject, "Dvd"), titleWithAcronym, None, None, runTimeInMinutes, 1, None, None, "Dvd")
             qs.addLibraryItem(dbObject, values)
@@ -62,9 +64,9 @@ def submitDvd(selectCategoryWindow, submitBookWindow, title, runTimeInMinutes):
         placeWindowOnTop(wrongInputWindow)
 
 def submitAudioBook(selectCategoryWindow, submitBookWindow, title, runTimeInMinutes):
-    if ef.checkInputAudioBookorDvd(title, runTimeInMinutes):
+    if qs.ef.checkInputAudioBookorDvd(title, runTimeInMinutes):
         dbObject = qs.dc.databaseConnection()
-        titleWithAcronym = title + ef.getAcronym(title)
+        titleWithAcronym = title + qs.ef.getAcronym(title)
         if qs.checkInDatabase(dbObject, "Category", ["CategoryName"], ["Audio Book"]):
             values = (qs.getCategoryId(dbObject, "Audio Book"), titleWithAcronym, None, None, runTimeInMinutes, 1, None, None, "Audio Book")
             qs.addLibraryItem(dbObject, values)
@@ -83,9 +85,9 @@ def submitAudioBook(selectCategoryWindow, submitBookWindow, title, runTimeInMinu
         placeWindowOnTop(wrongInputWindow)
 
 def submitReferenceBook(selectCategoryWindow, submitBookWindow, title, author, pages):
-    if ef.checkInputBookOrReferenceBook(title, author, pages):
+    if qs.ef.checkInputBookOrReferenceBook(title, author, pages):
         dbObject = qs.dc.databaseConnection()
-        titleWithAcronym = title + ef.getAcronym(title)
+        titleWithAcronym = title + qs.ef.getAcronym(title)
         if qs.checkInDatabase(dbObject, "Category", ["CategoryName"], ["Reference Book"]):
             values = (qs.getCategoryId(dbObject, "Reference Book"), titleWithAcronym, author, pages, None, 1, None, None, "Reference Book")
             qs.addLibraryItem(dbObject, values)
@@ -118,6 +120,42 @@ def submitCategory(name):
         question.grid(row=0, column=0)
         placeWindowOnTop(wrongInputWindow)
 
+def submitEmployee(submitEmployeeWindow, firstName, lastName, role, rank, managerId):
+    if qs.ef.checkInputEmployee(firstName, lastName):
+        dbObject = qs.dc.databaseConnection()
+        if role == "Employee" and qs.checkConditionsForEmployee(dbObject, managerId):
+            salary = 1.125*float(rank)
+            values = (firstName, lastName,salary, 0, 0, managerId)
+            qs.addEmployee(dbObject, values)
+            close_window(submitEmployeeWindow)
+        elif role == "Manager" and qs.checkConditionsForManager(dbObject, managerId):
+            salary = 1.725*float(rank)
+            if len(managerId) > 0:
+                values = (firstName, lastName,salary, 0, 1, managerId)
+                qs.addEmployee(dbObject, values)
+            else:
+                values = (firstName, lastName,salary, 0, 1, None)
+                qs.addEmployee(dbObject, values)
+            close_window(submitEmployeeWindow)
+        elif role == "CEO" and qs.checkConditionsForCeo(dbObject):
+            salary = 2.725*float(rank)
+            values = (firstName, lastName,salary, 1, 0, None)
+            qs.addEmployee(dbObject, values)
+            close_window(submitEmployeeWindow)
+        else:
+            wrongInputWindow = Toplevel()
+            wrongInputWindow.geometry("350x50")
+            centerWindow(wrongInputWindow, 350, 50) 
+            question = Label(wrongInputWindow, text="Wrong input! Make sure to match each input to its correct type")
+            question.grid(row=0, column=0)
+            placeWindowOnTop(wrongInputWindow)
+    else:
+        wrongInputWindow = Toplevel()
+        wrongInputWindow.geometry("350x50")
+        centerWindow(wrongInputWindow, 350, 50) 
+        question = Label(wrongInputWindow, text="Wrong input! Make sure to match each input to its correct type")
+        question.grid(row=0, column=0)
+        placeWindowOnTop(wrongInputWindow)    
 
 # add functionality
 def addCategory():
@@ -247,9 +285,66 @@ def addReferenceBook(selectCategoryWindow):
 
 def addEmployee():
     addEmployeeWindow = Toplevel()
-    addEmployeeWindow.title("Employees") 
-    addEmployeeWindow.geometry("220x120")
-    centerWindow(addEmployeeWindow, 220, 120)
+    addEmployeeWindow.title("Libraryitems")
+    addEmployeeWindow.geometry("300x160")  
+    centerWindow(addEmployeeWindow, 300, 160)
+
+    # First name input and label
+    firstName = Entry(addEmployeeWindow, width=10)
+    firstName.grid(row=0, column=1, padx=10)
+
+    firstName_label  = Label(addEmployeeWindow, text="First name (String)")
+    firstName_label.grid(row=0, column=0)
+    
+    # Last name input and label
+    lastName = Entry(addEmployeeWindow, width=10)
+    lastName.grid(row=1, column=1, padx=10)
+
+    lastName_label  = Label(addEmployeeWindow, text="lastName (String)")
+    lastName_label.grid(row=1, column=0)
+    
+    # Role input and label
+    roles = ["CEO", "Manager", "Employee"]
+    role = StringVar(addEmployeeWindow)
+    role.set(roles[2])
+    role.trace("w", lambda *args: showHideManagerId(role.get()))
+
+    option_menu = OptionMenu(addEmployeeWindow, role, *roles)
+    option_menu.grid(row=2, column=1, padx=10)
+
+    role_label  = Label(addEmployeeWindow, text="Role")
+    role_label.grid(row=2, column=0)
+
+
+    def showHideManagerId(selected_option):
+        if selected_option == "CEO":
+            managerId.grid_remove()
+        else:
+            managerId.grid(row=3, column=1, padx=10)
+
+
+    # Manager ID input and label
+    managerId = Entry(addEmployeeWindow, width=10)
+    managerId.grid(row=3, column=1, padx=10)
+
+    managerId_label  = Label(addEmployeeWindow, text="Manager ID (Integer)")
+    managerId_label.grid(row=3, column=0)
+
+    ranks = list(range(1,10))
+    rank = StringVar(addEmployeeWindow)
+    rank.set(ranks[0])
+
+    rank_menu = OptionMenu(addEmployeeWindow, rank, *ranks)
+    rank_menu.grid(row=4, column=1, padx=10)
+
+    rank_label  = Label(addEmployeeWindow, text="Rank")
+    rank_label.grid(row=4, column=0)
+
+    submit_button = Button(addEmployeeWindow, \
+                            text="Add Employee to database", \
+                            command=lambda:submitEmployee(addEmployeeWindow, firstName.get(), lastName.get(), role.get(), rank.get(), managerId.get()))
+    submit_button.grid(row=5, column=0) 
+    
     placeWindowOnTop(addEmployeeWindow)
 
 def addItem():
@@ -291,6 +386,7 @@ def editCategory(tree):
 
 def editItem(tree, attribute):
     # tree.focus holds the highlighted id number[0]
+    global currentSort
     selectedItem = tree.focus()
     Id = tree.item(selectedItem)["values"][0]
     editCategoryWindow = Toplevel()
@@ -300,7 +396,20 @@ def editItem(tree, attribute):
     answer = Entry(editCategoryWindow, width=10)
     answer.pack()
     dbObject = qs.dc.databaseConnection()
-    yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editItem(dbObject, Id, attribute, answer.get()), close_window(editCategoryWindow))).pack()
+    yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editItem(dbObject, Id, attribute, answer.get()), close_window(editCategoryWindow), updateView(dbObject, tree, "LibraryItems", currentSort))).pack()
+
+def editEmployee(tree, attribute):
+ # tree.focus holds the highlighted id number[0]
+    selectedItem = tree.focus()
+    Id = tree.item(selectedItem)["values"][0]
+    editCategoryWindow = Toplevel()
+    editCategoryWindow.geometry("250x100")
+    centerWindow(editCategoryWindow, 250, 100) 
+    question = Label(editCategoryWindow, text="Input the new value").pack()
+    answer = Entry(editCategoryWindow, width=10)
+    answer.pack()
+    dbObject = qs.dc.databaseConnection()
+    yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editEmployee(dbObject, Id, attribute, answer.get()), close_window(editCategoryWindow), updateView(dbObject, tree, "Employees", "Id"))).pack()   
 
 # delete functionality
 def deleteCategory(tree):
@@ -332,8 +441,8 @@ def deleteItem(tree):
     if selectedItem:
         Id = tree.item(selectedItem)["values"][0]
         deleteCategoryWindow = Toplevel()
-        deleteCategoryWindow.geometry("250x100")
-        centerWindow(deleteCategoryWindow, 850, 100) 
+        deleteCategoryWindow.geometry("270x100")
+        centerWindow(deleteCategoryWindow, 270, 100) 
         question = Label(deleteCategoryWindow, text="Are you sure you wanna delete this item?")
         question.grid(row=0, column=0)
         dbObject = qs.dc.databaseConnection()
@@ -347,6 +456,32 @@ def deleteItem(tree):
         editCategoryWindow.geometry("250x50")
         centerWindow(editCategoryWindow, 250, 50) 
         question = Label(editCategoryWindow, text="Select an item in the list you want to delete!")
+        question.grid(row=0, column=0)
+
+def deleteEmployee(tree, dbObject):
+    # tree.focus holds the highlighted id number[0]
+    selectedItem = tree.focus()
+    if selectedItem:
+        Id = tree.item(selectedItem)["values"][0]
+        if not qs.checkDeleteEmployee(dbObject, Id):
+            deleteEmployeeWindow = Toplevel()
+            deleteEmployeeWindow.geometry("270x100")
+            centerWindow(deleteEmployeeWindow, 270, 100) 
+            question = Label(deleteEmployeeWindow, text="Are you sure you wanna delete this employee?").pack()
+            dbObject = qs.dc.databaseConnection()
+            yesButton = Button(deleteEmployeeWindow, text="Yes", command=lambda: (qs.deleteEmployee(dbObject, Id), updateView(dbObject, tree, "Employees", "Id"), close_window(deleteEmployeeWindow))).pack()
+            noButton = Button(deleteEmployeeWindow, text="No", command=lambda:close_window(deleteEmployeeWindow)).pack()
+        else:
+            deleteEmployeeWindow = Toplevel()
+            deleteEmployeeWindow.geometry("250x50")
+            centerWindow(deleteEmployeeWindow, 250, 50) 
+            question = Label(deleteEmployeeWindow, text="Operation can't be done!")
+            question.grid(row=0, column=0)
+    else:
+        deleteEmployeeWindow = Toplevel()
+        deleteEmployeeWindow.geometry("250x50")
+        centerWindow(deleteEmployeeWindow, 250, 50) 
+        question = Label(deleteEmployeeWindow, text="Operation can't be done!")
         question.grid(row=0, column=0)
 
 # view functionality
@@ -427,10 +562,38 @@ def viewLibraryItems():
     viewLibraryItemsWindow.grid_rowconfigure(0, weight=1)
 
 def viewEmployees():
-    print()
+    viewEmployeesWindow = Toplevel()
+    tree = ttk.Treeview(viewEmployeesWindow)
+    viewEmployeesWindow.geometry("350x300")
+    centerWindow(viewEmployeesWindow, 350, 300) 
+    # Set up the columns in the Treeview widget
+    dbObject = qs.dc.databaseConnection()
+    columns = qs.getColumns(dbObject, "Employees")
+    tree = ttk.Treeview(viewEmployeesWindow, columns=columns, show="headings")
+    tree["columns"] = columns
+    for col in columns:
+        tree.heading(col, text=col)
+        tree.column(col, width=50)
+
+    updateView(dbObject, tree, "Employees", "Id")
+    scrollbar =  Scrollbar(viewEmployeesWindow, orient="vertical", command=tree.yview)
+    scrollbar.grid(row=0, column=1, sticky="ns")
+
+    tree.grid(row=0, column=0, sticky="nsew")
+    tree.configure(yscrollcommand=scrollbar.set)
+
+    # Create buttons
+    editButton = Button(viewEmployeesWindow, text="Edit Employee", command=lambda:selectEmployeeAttribute(tree))
+    deleteButton = Button(viewEmployeesWindow, text="Delete Employee", command=lambda:deleteEmployee(tree, dbObject))
+    # Place buttons in the grid
+    editButton.grid(row=1, column=0, padx=5, pady=5, sticky="e")
+    deleteButton.grid(row=2, column=0, padx=5, pady=5, sticky="e")
+    
+
+    viewEmployeesWindow.grid_columnconfigure(0, weight=1)
+    viewEmployeesWindow.grid_rowconfigure(0, weight=1)
 
 # Check In & Check Out
-
 def checkIn(tree):
     # tree.focus holds the highlighted id number[0]
     selectedItem = tree.focus()
@@ -520,6 +683,42 @@ def selectItemAttribute(tree):
         question = Label(deleteCategoryWindow, text="Select an item in the list you want to edit!")
         question.grid(row=0, column=0)
 
+def selectEmployeeAttribute(tree):
+    selectedItem = tree.focus()
+    if selectedItem:
+        selectCategoryWindow = Toplevel()
+        selectCategoryWindow.geometry("220x230")
+
+        centerWindow(selectCategoryWindow, 220, 230)
+
+        question = Label(selectCategoryWindow, text="Select the attribute you want to edit").pack()
+
+        firstName = Button(selectCategoryWindow, text="First Name", command=lambda: (editEmployee(tree, "firstName"), close_window(selectCategoryWindow))).pack()
+
+        lastName = Button(selectCategoryWindow, text="Last Name", command=lambda: (editEmployee(tree, "lastName"), close_window(selectCategoryWindow))).pack()
+
+        role = Button(selectCategoryWindow, text="Role", command=lambda: (selectRole(tree), close_window(selectCategoryWindow))).pack()
+    else:
+        deleteCategoryWindow = Toplevel()
+        deleteCategoryWindow.geometry("250x50")
+        centerWindow(deleteCategoryWindow, 250, 50) 
+        question = Label(deleteCategoryWindow, text="Select an employee in the list you want to edit!")
+        question.grid(row=0, column=0)
+
+def selectRole(tree):
+    selectedItem = tree.focus()
+    Id = tree.item(selectedItem)["values"][0]
+    selectCategoryWindow = Toplevel()
+    selectCategoryWindow.geometry("220x230")
+
+    centerWindow(selectCategoryWindow, 220, 230)
+
+    question = Label(selectCategoryWindow, text="Select the new roll").pack()
+    dbObject = qs.dc.databaseConnection()
+    firstName = Button(selectCategoryWindow, text="CEO", command=lambda: (qs.editEmployee(dbObject, Id, "isCEO", 1), close_window(selectCategoryWindow))).pack()
+
+    lastName = Button(selectCategoryWindow, text="Manager", command=lambda: (qs.editEmployee(dbObject, Id, "isManager", 1), close_window(selectCategoryWindow))).pack()
+
 def setupMainMenu(root):
     categoryButton = Button(root, text="Add Category", command=addCategory)
     categoryButton.grid(row=0, column=0)
@@ -532,7 +731,6 @@ def setupMainMenu(root):
 
     categoryViewButton = Button(root, text="View Categories", command=viewCategories)
     categoryViewButton.grid(row=0, column=1)
-
 
     libraryItemViewButton = Button(root, text="View Libraryitem", command=viewLibraryItems)
     libraryItemViewButton.grid(row=1, column=1)
