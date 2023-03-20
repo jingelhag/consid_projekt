@@ -119,7 +119,7 @@ def addCategory(dbObject, name):
 def editCategory(dbObject, Id, newName):
     if checkInDatabase(dbObject, "Category", ["Id"], [Id]):
         dbObject.startConnection()
-        dbObject.cursor.execute("UPDATE Category CategoryName = %s WHERE Id = %s", (newName, Id))
+        dbObject.cursor.execute("UPDATE Category SET CategoryName = %s WHERE Id = %s", (newName, Id))
         dbObject.database.commit()
         print("Category was edited!")
         dbObject.closeConnection()

@@ -1,9 +1,11 @@
 import window_manager as wm
 import databaseConnection
 databaseObject = databaseConnection.databaseConnection()
-databaseObject.removeDatabase()
-databaseObject.initialize()
-databaseObject.setupTables()
+
+# Use these commands to remove database and setup everything from start :)
+# databaseObject.removeDatabase()
+# databaseObject.initialize()
+# databaseObject.setupTables()
 
 root = wm.Tk()
 root.geometry("200x100")

@@ -94,7 +94,7 @@ def submitReferenceBook(selectCategoryWindow, submitBookWindow, title, author, p
         else:
             qs.addCategory(dbObject, "Reference Book")
             # putting zero on isBorrowable
-            values = (qs.getCategoryId(dbObject, "Reference Book"), title, author, pages, None, 0, None, None, "Reference Book")
+            values = (qs.getCategoryId(dbObject, "Reference Book"), titleWithAcronym, author, pages, None, 0, None, None, "Reference Book")
             qs.addLibraryItem(dbObject, values)
         close_window(submitBookWindow)
         close_window(selectCategoryWindow)
@@ -110,7 +110,6 @@ def submitCategory(name):
     if isinstance(name, str):
         dbConnection = qs.dc.databaseConnection()
         qs.addCategory(dbConnection, str(name))
-        name.delete(0, END)
         del dbConnection
     else:
         wrongInputWindow = Toplevel()
@@ -170,13 +169,13 @@ def addCategory():
     category_name_label  = Label(addCategoryWindow, text="Name of category (String)")
     category_name_label.grid(row=0, column=0)
 
-    submit_button = Button(addCategoryWindow, text="Add category to database", command=lambda:submitCategory(category_name.get()))
+    submit_button = Button(addCategoryWindow, text="Add category to database", command=lambda:(submitCategory(category_name.get()), close_window(addCategoryWindow)))
     submit_button.grid(row=1, column=0)
     placeWindowOnTop(addCategoryWindow)
 
 def addBook(selectCategoryWindow):
     addBookWindow = Toplevel()
-    addBookWindow.title("Libraryitems")
+    addBookWindow.title("Add Book")
     addBookWindow.geometry("300x130")  
     centerWindow(addBookWindow, 300, 130)
 
@@ -208,7 +207,7 @@ def addBook(selectCategoryWindow):
 
 def addDvd(selectCategoryWindow):
     addDvdWindow = Toplevel()
-    addDvdWindow.title("Libraryitems")
+    addDvdWindow.title("Add DVD")
     addDvdWindow.geometry("300x110")  
     centerWindow(addDvdWindow, 300, 110)
     # Title input and label
@@ -285,7 +284,7 @@ def addReferenceBook(selectCategoryWindow):
 
 def addEmployee():
     addEmployeeWindow = Toplevel()
-    addEmployeeWindow.title("Libraryitems")
+    addEmployeeWindow.title("Add employee")
     addEmployeeWindow.geometry("300x160")  
     centerWindow(addEmployeeWindow, 300, 160)
 
@@ -371,12 +370,12 @@ def editCategory(tree):
         Id = tree.item(selectedItem)["values"][0]
         editCategoryWindow = Toplevel()
         editCategoryWindow.geometry("250x100")
-        centerWindow(editCategoryWindow, 850, 100) 
+        centerWindow(editCategoryWindow, 250, 100) 
         question = Label(editCategoryWindow, text="Write the new name").pack()
-        answer = Entry(editCategoryWindow, width=10)
+        answer = Entry(editCategoryWindow, width=15)
         answer.pack()
         dbObject = qs.dc.databaseConnection()
-        yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editCategory(dbObject, Id, str(answer.get())), close_window(editCategoryWindow))).pack()
+        yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editCategory(dbObject, Id, str(answer.get())), updateView(dbObject, tree, "Category", "Id"), close_window(editCategoryWindow))).pack()
     else:
         editCategoryWindow = Toplevel()
         editCategoryWindow.geometry("250x50")
@@ -396,7 +395,7 @@ def editItem(tree, attribute):
     answer = Entry(editCategoryWindow, width=10)
     answer.pack()
     dbObject = qs.dc.databaseConnection()
-    yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editItem(dbObject, Id, attribute, answer.get()), close_window(editCategoryWindow), updateView(dbObject, tree, "LibraryItems", currentSort))).pack()
+    yesButton = Button(editCategoryWindow, text="Submit", command=lambda: (qs.editItem(dbObject, Id, attribute, answer.get()), close_window(editCategoryWindow), updateView(dbObject, tree, "LibraryItem", currentSort))).pack()
 
 def editEmployee(tree, attribute):
  # tree.focus holds the highlighted id number[0]
@@ -419,15 +418,15 @@ def deleteCategory(tree):
         Id = tree.item(selectedItem)["values"][0]
         deleteCategoryWindow = Toplevel()
         deleteCategoryWindow.geometry("250x100")
-        centerWindow(deleteCategoryWindow, 850, 100) 
+        centerWindow(deleteCategoryWindow, 250, 100) 
         question = Label(deleteCategoryWindow, text="Are you sure you wanna delete this item?")
         question.grid(row=0, column=0)
         dbObject = qs.dc.databaseConnection()
-        yesButton = Button(deleteCategoryWindow, text="Yes", command=lambda: (qs.deleteCategory(dbObject, Id), close_window(deleteCategoryWindow)))
+        yesButton = Button(deleteCategoryWindow, text="Yes", command=lambda: (qs.deleteCategory(dbObject, Id),updateView(dbObject, tree, "Category", "Id") ,close_window(deleteCategoryWindow)))
         yesButton.grid(row=1, column=0)
 
         noButton = Button(deleteCategoryWindow, text="No", command=lambda:close_window(deleteCategoryWindow))
-        noButton.grid(row=1, column=1)
+        noButton.grid(row=2, column=0)
     else:
         deleteCategoryWindow = Toplevel()
         deleteCategoryWindow.geometry("250x50")
@@ -437,20 +436,21 @@ def deleteCategory(tree):
 
 def deleteItem(tree):
     # tree.focus holds the highlighted id number[0]
+    global currentSort
     selectedItem = tree.focus()
     if selectedItem:
         Id = tree.item(selectedItem)["values"][0]
         deleteCategoryWindow = Toplevel()
-        deleteCategoryWindow.geometry("270x100")
-        centerWindow(deleteCategoryWindow, 270, 100) 
+        deleteCategoryWindow.geometry("250x100")
+        centerWindow(deleteCategoryWindow, 250, 100) 
         question = Label(deleteCategoryWindow, text="Are you sure you wanna delete this item?")
         question.grid(row=0, column=0)
         dbObject = qs.dc.databaseConnection()
-        yesButton = Button(deleteCategoryWindow, text="Yes", command=lambda: (qs.deleteItem(dbObject, Id), close_window(deleteCategoryWindow)))
+        yesButton = Button(deleteCategoryWindow, text="Yes", command=lambda: (qs.deleteItem(dbObject, Id), updateView(dbObject, tree, "LibraryItem", currentSort), close_window(deleteCategoryWindow)))
         yesButton.grid(row=1, column=0)
 
         noButton = Button(deleteCategoryWindow, text="No", command=lambda:close_window(deleteCategoryWindow))
-        noButton.grid(row=1, column=1)
+        noButton.grid(row=2, column=0)
     else:
         editCategoryWindow = Toplevel()
         editCategoryWindow.geometry("250x50")
@@ -612,8 +612,8 @@ def checkIn(tree):
             noButton.grid(row=1, column=1)
         else:
             checkInWindow = Toplevel()
-            checkInWindow.geometry("300x50")
-            centerWindow(checkInWindow, 300, 50) 
+            checkInWindow.geometry("450x50")
+            centerWindow(checkInWindow, 450, 50) 
             question = Label(checkInWindow, text="Can't check in item since it's either a reference book or it is already check in!")
             question.grid(row=0, column=0)
     else:
@@ -641,8 +641,8 @@ def checkOut(tree):
             answer.grid(row=0, column=1)
         else:
             checkInWindow = Toplevel()
-            checkInWindow.geometry("250x50")
-            centerWindow(checkInWindow, 250, 50) 
+            checkInWindow.geometry("280x50")
+            centerWindow(checkInWindow, 280, 50) 
             question = Label(checkInWindow, text="Can't check out item since it already is checked out!")
             question.grid(row=0, column=0)
     else:
@@ -663,19 +663,19 @@ def selectItemAttribute(tree):
 
         question = Label(selectCategoryWindow, text="Select the attribute you want to edit").pack()
 
-        title = Button(selectCategoryWindow, text="Title", command=lambda: editItem(tree, "Title")).pack()
+        title = Button(selectCategoryWindow, text="Title", command=lambda: (editItem(tree, "Title"), close_window(selectCategoryWindow))).pack()
 
-        author = Button(selectCategoryWindow, text="Author", command=lambda: editItem(tree, "Author")).pack()
+        author = Button(selectCategoryWindow, text="Author", command=lambda: (editItem(tree, "Author"), close_window(selectCategoryWindow))).pack()
 
-        pages = Button(selectCategoryWindow, text="Pages", command=lambda: editItem(tree, "Pages")).pack()
+        pages = Button(selectCategoryWindow, text="Pages", command=lambda: (editItem(tree, "Pages"), close_window(selectCategoryWindow))).pack()
 
-        runTimeMinutes = Button(selectCategoryWindow, text="Runtime in minutes", command=lambda: editItem(tree, "runTimeMinutes")).pack()
+        runTimeMinutes = Button(selectCategoryWindow, text="Runtime in minutes", command=lambda: (editItem(tree, "runTimeMinutes"), close_window(selectCategoryWindow))).pack()
 
-        borrower = Button(selectCategoryWindow, text="Borrower", command=lambda: editItem(tree, "borrower")).pack()
+        borrower = Button(selectCategoryWindow, text="Borrower", command=lambda: (editItem(tree, "borrower"), close_window(selectCategoryWindow))).pack()
 
-        borrowDate = Button(selectCategoryWindow, text="Borrow Date", command=lambda: editItem(tree, "borrowDate")).pack()
+        borrowDate = Button(selectCategoryWindow, text="Borrow Date", command=lambda: (editItem(tree, "borrowDate"), close_window(selectCategoryWindow))).pack()
 
-        itemType = Button(selectCategoryWindow, text="Type of item", command=lambda: editItem(tree, "type")).pack()
+        itemType = Button(selectCategoryWindow, text="Type of item", command=lambda: (editItem(tree, "type"), close_window(selectCategoryWindow))).pack()
     else:
         deleteCategoryWindow = Toplevel()
         deleteCategoryWindow.geometry("250x50")
