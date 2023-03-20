@@ -422,7 +422,7 @@ def deleteCategory(tree):
         question = Label(deleteCategoryWindow, text="Are you sure you wanna delete this item?")
         question.grid(row=0, column=0)
         dbObject = qs.dc.databaseConnection()
-        yesButton = Button(deleteCategoryWindow, text="Yes", command=lambda: (qs.deleteCategory(dbObject, Id),updateView(dbObject, tree, "Category", "Id") ,close_window(deleteCategoryWindow)))
+        yesButton = Button(deleteCategoryWindow, text="Yes", command=lambda: (qs.deleteCategory(dbObject, Id), updateView(dbObject, tree, "Category", "Id") ,close_window(deleteCategoryWindow)))
         yesButton.grid(row=1, column=0)
 
         noButton = Button(deleteCategoryWindow, text="No", command=lambda:close_window(deleteCategoryWindow))

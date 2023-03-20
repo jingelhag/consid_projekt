@@ -10,9 +10,10 @@ def checkInDatabase(dbObject, tableName, listOfColumns, listOfValues):
             query += " AND "
         query += "{} = %s".format(listOfColumns[i])
     dbObject.cursor.execute(query, listOfValues)
-    answer = dbObject.cursor.fetchone()
+    answer = dbObject.cursor.fetchall()
+    print(answer)
     dbObject.closeConnection()
-    return int(0 if answer is None else 1)
+    return int(0 if len(answer) == 0 else 1)
 
 def getCategoryId(dbObject, categoryName):
     dbObject.startConnection()
@@ -36,6 +37,12 @@ def getColumns(dbObject, table):
     # Get the column names from the cursor fetchall method
     column_names = [col[0] for col in dbObject.cursor.fetchall()]
     return column_names   
+
+def updateCategoryName(dbObject, newValue, Id):
+    dbObject.startConnection()
+    dbObject.cursor.execute("UPDATE LibraryItem SET Type = %s WHERE CategoryId = %s", (newValue, Id))
+    dbObject.database.commit()
+    dbObject.closeConnection()
 
 def getManagerId(dbObject, Id):
     dbObject.startConnection()
@@ -121,6 +128,7 @@ def editCategory(dbObject, Id, newName):
         dbObject.startConnection()
         dbObject.cursor.execute("UPDATE Category SET CategoryName = %s WHERE Id = %s", (newName, Id))
         dbObject.database.commit()
+        updateCategoryName(dbObject, newName, Id)
         print("Category was edited!")
         dbObject.closeConnection()
     else:
