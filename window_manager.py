@@ -89,7 +89,7 @@ def submitReferenceBook(selectCategoryWindow, submitBookWindow, title, author, p
         dbObject = qs.dc.databaseConnection()
         titleWithAcronym = title + qs.ef.getAcronym(title)
         if qs.checkInDatabase(dbObject, "Category", ["CategoryName"], ["Reference Book"]):
-            values = (qs.getCategoryId(dbObject, "Reference Book"), titleWithAcronym, author, pages, None, 1, None, None, "Reference Book")
+            values = (qs.getCategoryId(dbObject, "Reference Book"), titleWithAcronym, author, pages, None, 0, None, None, "Reference Book")
             qs.addLibraryItem(dbObject, values)
         else:
             qs.addCategory(dbObject, "Reference Book")
@@ -602,14 +602,14 @@ def checkIn(tree):
         Id = tree.item(selectedItem)["values"][0]
         if not qs.isBorrowable(dbObject, Id) and not qs.isReferenceBook(dbObject, Id):
             checkInWindow = Toplevel()
-            checkInWindow.geometry("250x100")
-            centerWindow(checkInWindow, 250, 100) 
+            checkInWindow.geometry("270x100")
+            centerWindow(checkInWindow, 270, 100) 
             question = Label(checkInWindow, text="Are you sure you wanna check in this item?")
             question.grid(row=0, column=0)
             yesButton = Button(checkInWindow, text="Yes", command=lambda: (qs.checkIn(dbObject, Id), close_window(checkInWindow), updateView(dbObject, tree, "LibraryItem", currentSort)))
             yesButton.grid(row=1, column=0)
             noButton = Button(checkInWindow, text="No", command=lambda:close_window(checkInWindow))
-            noButton.grid(row=1, column=1)
+            noButton.grid(row=2, column=0)
         else:
             checkInWindow = Toplevel()
             checkInWindow.geometry("450x50")

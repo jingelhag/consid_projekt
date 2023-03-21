@@ -9,8 +9,8 @@ class databaseConnection:
     def connectToDb(self):
         db = mysql.connector.connect(
             host="localhost",
-            user="root",
-            passwd="Juing02a",
+            user="root", # change if neccesary
+            passwd="Juing02a", # change if neccesary
             auth_plugin='mysql_native_password',
             database="Library"
         )
@@ -60,8 +60,8 @@ class databaseConnection:
     def initialize(self):
         db = mysql.connector.connect(
                 host="localhost",
-                user="root",
-                passwd="Juing02a",
+                user="root", # change if neccesary
+                passwd="Juing02a", # change if neccesary 
                 auth_plugin='mysql_native_password'
             )
         dbCursor = db.cursor()

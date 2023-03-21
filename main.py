@@ -3,6 +3,7 @@ import databaseConnection
 databaseObject = databaseConnection.databaseConnection()
 
 # Use these commands to remove database and setup everything from start :)
+
 # databaseObject.removeDatabase()
 # databaseObject.initialize()
 # databaseObject.setupTables()
