@@ -4,7 +4,7 @@ Project for consid traniee.
 
 ## Project description and features
 
-This is library database viewer that holds functionality to handle times in a library.
+This is library database viewer that holds functionality to handle itmes in a library.
 It also can manage employees. For more detailed information on what features the application has, problem description can be found in this zip-file. Here one can read on what one can or can't do. 
 
 ### Installation
